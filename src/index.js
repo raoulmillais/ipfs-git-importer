@@ -2,6 +2,7 @@ import path from 'path'
 import 'babel-polyfill'
 import IPFS from 'ipfs'
 import pify from 'pify'
+import { readdirDeep, rimraf } from './fs-util.js'
 const git = require('isomorphic-git')
 
 // Config
@@ -9,7 +10,8 @@ const cloneDir = '/test-git'
 const remoteUrl = 'https://github.com/raoulmillais/history-check-test-repo'
 
 // IPFS node setup
-const node = new IPFS({ repo: String(Math.random() + Date.now()) })
+const ipfs = window.ipfs = new IPFS({ repo: String(Math.random() + Date.now()) })
+window.Buffer = Buffer
 
 // UI elements
 const status = document.getElementById('status')
@@ -23,40 +25,16 @@ function log (txt) {
   output.textContent += `${txt.trim()}\n`
 }
 
-async function rimraf (pfs, dir) {
-  try {
-    await pfs.stat(dir)
-  } catch (e) {
-    log(`${dir} does not exist`)
-    return
-  }
-
-  const entries = await pfs.readdir(dir)
-  const entryPaths = entries.map((entry) => { return path.join(dir, entry) })
-
-  for (const entryPath of entryPaths) {
-    const entryStats = await pfs.lstat(entryPath)
-    if (entryStats.isDirectory()) {
-      await rimraf(pfs, entryPath)
-    } else {
-      log(`Deleting ${entryPath}`)
-      await pfs.unlink(entryPath)
-    }
-  }
-
-  log(`Deleting directory ${dir}`)
-  try {
-    await pfs.rmdir(dir)
-  } catch (e) {
-    console.error('Error deleting directory', dir)
-    throw e
-  }
+async function createBufferFromPath (pfs, path) {
+  // TODO: don't buffer the file contents in memory
+  const fileContents = await pfs.readFile(path)
+  return ipfs.types.Buffer.from(fileContents)
 }
 
-node.on('ready', async () => {
+ipfs.on('ready', async () => {
   status.innerText = 'Connected to IPFS :)'
 
-  const version = await node.version()
+  const version = await ipfs.version()
 
   log(`The IPFS node version is ${version.version}`)
 
@@ -87,4 +65,21 @@ node.on('ready', async () => {
   })
 
   log(`Clone complete`)
+
+  log('Preparing to add files to ipfs')
+
+  const files = await readdirDeep(pfs, cloneDir)
+  const fileSpecs = await Promise.all(files.map(createFileSpec))
+
+  console.log(fileSpecs)
+
+  log('Adding files to ipfs')
+  async function createFileSpec (file) {
+    const buffer = await createBufferFromPath(pfs, file)
+    return { path: file, content: buffer }
+  }
+  const results = await ipfs.add(fileSpecs)
+
+  log('Done')
+  console.log(results)
 })
