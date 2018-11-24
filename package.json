@@ -1,0 +1,31 @@
+{
+  "name": "ipfs-git-importer",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "lint": "standard public/**/*.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "parcel public/index.html",
+    "build": "parcel build public/index.html --public-url ./",
+    "postinstall": "cd node_modules/isomorphic-git && npm install --python=`which python2.7` && npm run build"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@babel/cli": "^7.1.5",
+    "@babel/core": "^7.1.6",
+    "@babel/preset-env": "^7.1.6",
+    "babel-plugin-syntax-async-functions": "^6.13.0",
+    "babel-plugin-transform-regenerator": "^6.26.0",
+    "babel-polyfill": "^6.26.0",
+    "parcel-bundler": "^1.10.3",
+    "standard": "^12.0.1"
+  },
+  "dependencies": {
+    "ipfs": "git+https://github.com/raoulmillais/js-ipfs#browserfs-support",
+    "isomorphic-git": "git+https://github.com/raoulmillais/isomorphic-git#master",
+    "pify": "^4.0.1"
+  }
+}
