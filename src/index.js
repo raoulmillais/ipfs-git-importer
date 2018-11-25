@@ -1,4 +1,3 @@
-import path from 'path'
 import 'babel-polyfill'
 import IPFS from 'ipfs'
 import pify from 'pify'
@@ -69,17 +68,15 @@ ipfs.on('ready', async () => {
   log('Preparing to add files to ipfs')
 
   const files = await readdirDeep(pfs, cloneDir)
-  const fileSpecs = await Promise.all(files.map(createFileSpec))
-
-  console.log(fileSpecs)
-
-  log('Adding files to ipfs')
-  async function createFileSpec (file) {
+  const fileSpecs = await Promise.all(files.map(async (file) => {
     const buffer = await createBufferFromPath(pfs, file)
     return { path: file, content: buffer }
-  }
-  const results = await ipfs.add(fileSpecs)
+  }))
 
-  log('Done')
-  console.log(results)
+  log('Adding files to ipfs')
+
+  const results = await ipfs.files.add(fileSpecs)
+
+  const rootHash = results.find(r => r.path === cloneDir.slice(1))
+  log(`Done root hash is ${rootHash.hash}`)
 })
