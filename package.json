@@ -3,12 +3,14 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "browserslist": [
+    "last 2 Chrome versions"
+  ],
   "scripts": {
     "lint": "standard public/**/*.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "parcel public/index.html",
-    "build": "parcel build public/index.html --public-url ./",
-    "postinstall": "cd node_modules/isomorphic-git && npm install --python=`which python2.7` && npm run build"
+    "build": "parcel build public/index.html --public-url ./"
   },
   "keywords": [],
   "author": "",
@@ -24,8 +26,8 @@
     "standard": "^12.0.1"
   },
   "dependencies": {
-    "ipfs": "git+https://github.com/raoulmillais/js-ipfs#browserfs-support",
-    "isomorphic-git": "git+https://github.com/raoulmillais/isomorphic-git#master",
+    "ipfs": "^0.33.1",
+    "isomorphic-git": "^0.40.0",
     "pify": "^4.0.1"
   }
 }
