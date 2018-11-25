@@ -1,7 +1,7 @@
 import 'babel-polyfill'
 import IPFS from 'ipfs'
 import pify from 'pify'
-import { readdirDeep, rimraf } from './fs-util.js'
+import { createPullStreamFromPath, readdirDeep, rimraf } from './fs-util.js'
 const git = require('isomorphic-git')
 
 // Config
@@ -22,12 +22,6 @@ output.textContent = ''
 function log (txt) {
   console.info(txt)
   output.textContent += `${txt.trim()}\n`
-}
-
-async function createBufferFromPath (pfs, path) {
-  // TODO: don't buffer the file contents in memory
-  const fileContents = await pfs.readFile(path)
-  return ipfs.types.Buffer.from(fileContents)
 }
 
 ipfs.on('ready', async () => {
@@ -54,7 +48,6 @@ ipfs.on('ready', async () => {
 
   // Initialize isomorphic-git with our new file system
   git.plugins.set('fs', fs)
-  console.log('Clone dir ', cloneDir)
   log(`Cloning ${remoteUrl} into IndexedDB`)
   await git.clone({
     dir: cloneDir,
@@ -68,9 +61,10 @@ ipfs.on('ready', async () => {
   log('Preparing to add files to ipfs')
 
   const files = await readdirDeep(pfs, cloneDir)
-  const fileSpecs = await Promise.all(files.map(async (file) => {
-    const buffer = await createBufferFromPath(pfs, file)
-    return { path: file, content: buffer }
+
+  const fileSpecs = files.map(file => ({
+    path: file,
+    content: createPullStreamFromPath(pfs, file)
   }))
 
   log('Adding files to ipfs')

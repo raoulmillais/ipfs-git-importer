@@ -1,40 +1,32 @@
+import pull from 'pull-stream'
+import PullCont from 'pull-cont'
 import path from 'path'
 
-const log = console.log;
+const log = console.log
 
-/*
-export async function readdirDeep (fs, dir, allFiles = []) {
-  const files = (await fs.readdir(dir))
-  const fullFilePaths = files.map(file => path.join(dir, file))
-  allFiles.push(...files)
+export function createPullStreamFromPath (fs, path) {
+  return PullCont(function pullFromFsStream (cb) {
+    fs.readFile(path, (err, contents) => {
+      if (err) return cb(err)
 
-  const stats = await Promise.all(fullFilePaths.map(fs.stat(fullFilePath))));
-  const subDirectories = stats.filter(stat.isDirectory());
-
-  await Promise.all(subDirectories.map(readdirDeep(fullFilePath,
-
-  await Promise.all(fullFilePaths.map(async fullFilePath => {
-    const stats = await fs.stat(fullFilePath)
-    if (stats.isDirectory()) readdirDeep(fullFilePath, allFiles)
-  }))
-
-  return allFiles
+      return cb(null, pull.values(contents))
+    })
+  })
 }
-*/
 
 export async function readdirDeep (fs, dir, allFiles = [], allDirs = []) {
-  const files = (await fs.readdir(dir)).map(f => path.join(dir, f))
+  const files = (await fs.readdir(dir)).map(file => path.join(dir, file))
   allFiles.push(...files)
 
-  await Promise.all(files.map(async f => {
-    const stats = await fs.stat(f)
+  await Promise.all(files.map(async file => {
+    const stats = await fs.stat(file)
     if (stats.isDirectory()) {
-      allDirs.push(f)
-      return readdirDeep(fs, f, allFiles, allDirs)
+      allDirs.push(file)
+      return readdirDeep(fs, file, allFiles, allDirs)
     }
   }))
 
-  return allFiles.filter(x => allDirs.indexOf(x) < 0)
+  return allFiles.filter(file => allDirs.indexOf(file) < 0)
 }
 
 export async function rimraf (fs, dir) {

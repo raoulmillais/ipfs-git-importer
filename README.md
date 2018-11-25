@@ -1,5 +1,10 @@
 # Prototype of a pure JS ipfs git repository importer
 
+## This is a proof of concept
+
+* Expect force pushes to msater
+* Do not rely on the code here
+
 ## Issues
 
 * Babel defaults to supporting  <0.25% of brosers when transpiling which 

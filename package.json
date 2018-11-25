@@ -26,8 +26,12 @@
     "standard": "^12.0.1"
   },
   "dependencies": {
+    "found": "^0.3.14",
     "ipfs": "^0.33.1",
     "isomorphic-git": "^0.40.0",
-    "pify": "^4.0.1"
+    "not": "^0.1.0",
+    "pify": "^4.0.1",
+    "pull-cont": "^0.1.1",
+    "pull-stream": "^3.6.9"
   }
 }
